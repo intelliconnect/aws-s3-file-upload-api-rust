@@ -1,0 +1,17 @@
+[package]
+name = "aws_image_upload"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = { version = "0.5.17", features = ["multipart"] }
+serde_json = { version = "1.0.68" }
+tokio = { version = "1.0", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tower-http = { version = "0.3.0", features = ["cors"] }
+chrono = { version = "0.4.22", features = ["serde"] }
+aws-config = "0.51.0"
+aws-sdk-s3 = "0.21.0"
