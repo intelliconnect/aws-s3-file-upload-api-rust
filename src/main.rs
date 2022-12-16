@@ -34,7 +34,7 @@ async fn main() {
         .route("/", get(|| async move { "welcome to Image upload api" }))
         //route for uploading image or any file
         .route("/upload", post(upload_image))
-        // set you cors config
+        // set your cors config
         .layer(cors_layer)
         // pass the aws s3 client to route handler
         .layer(Extension(aws_s3_client));
@@ -92,8 +92,12 @@ async fn upload_image(
             // concatinating name and category so even if the filenames are same it will not
             // conflict
             format!("{}_{}", &name, &category),
-            // if you have a public url for you bucket, you can replace bucket with that url
-            format!("{}/{}", bucket, key),
+            // if you have a public url for your bucket, place it as ENV variable BUCKET_URL
+            format!(
+                "{}/{}",
+                std::env::var("BUCKET_URL").unwrap_or(bucket.to_owned()),
+                key
+            ),
         );
     }
     // send the urls in response
