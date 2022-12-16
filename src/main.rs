@@ -53,6 +53,8 @@ async fn upload_image(
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
     // get the name of aws bucket from env variable
     let bucket = std::env::var("AWS_S3_BUCKET").unwrap_or("my-bucket-name".to_owned());
+    // if you have a public url for your bucket, place it as ENV variable BUCKET_URL
+    let bucket_url = std::env::var("BUCKET_URL").unwrap_or(bucket.to_owned());
     // we are going to store the respose in HashMap as filename: url => key: value
     let mut res = HashMap::new();
     while let Some(file) = files.next_field().await.unwrap() {
@@ -92,12 +94,7 @@ async fn upload_image(
             // concatinating name and category so even if the filenames are same it will not
             // conflict
             format!("{}_{}", &name, &category),
-            // if you have a public url for your bucket, place it as ENV variable BUCKET_URL
-            format!(
-                "{}/{}",
-                std::env::var("BUCKET_URL").unwrap_or(bucket.to_owned()),
-                key
-            ),
+            format!("{}/{}", bucket_url, key),
         );
     }
     // send the urls in response
