@@ -29,3 +29,10 @@ or you can run it like below
     AWS_S3_BUCKET=s3_bucket_name \
     BUCKET_URL=public_url_for_s3_bucket_optional \
     cargo run
+
+
+added a environment variable to specify the subpath inside bucket
+
+    BUCKET_SUB_PATH=path/to/upload/directory
+
+

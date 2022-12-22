@@ -55,6 +55,8 @@ async fn upload_image(
     let bucket = std::env::var("AWS_S3_BUCKET").unwrap_or("my-bucket-name".to_owned());
     // if you have a public url for your bucket, place it as ENV variable BUCKET_URL
     let bucket_url = std::env::var("BUCKET_URL").unwrap_or(bucket.to_owned());
+    // if a sub folder path is set in environment then get that else set a default sub path
+    let sub_path = std::env::var("BUCKET_SUB_PATH").unwrap_or("uploaded_images".to_owned());
     // we are going to store the respose in HashMap as filename: url => key: value
     let mut res = HashMap::new();
     while let Some(file) = files.next_field().await.unwrap() {
@@ -68,7 +70,8 @@ async fn upload_image(
         // the path of file to store on aws s3 with file name and extention
         // timestamp_category_filename => 14-12-2022_01:01:01_customer_somecustomer.jpg
         let key = format!(
-            "images/{}_{}_{}",
+            "{}/images/{}_{}_{}",
+            sub_path,
             chrono::Utc::now().format("%d-%m-%Y_%H:%M:%S"),
             &category,
             &name
