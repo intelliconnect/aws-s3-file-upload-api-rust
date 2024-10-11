@@ -38,12 +38,14 @@ async fn main() {
         .layer(cors_layer)
         // pass the aws s3 client to route handler
         .layer(Extension(aws_s3_client));
-    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 3000));
-    tracing::debug!("starting server on port: {}", addr.port());
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+
+    let addr = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    
+    tracing::debug!("starting server on port: {}", addr.local_addr().unwrap().port());
+    
+    axum::serve(addr, app)
         .await
-        .expect("failed to start server");
+        .expect("Failed to start server");
 }
 
 // handler to upload image or file
