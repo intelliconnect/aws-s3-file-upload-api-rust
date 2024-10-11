@@ -1,5 +1,5 @@
 # Build Stage
-FROM rust:1.64.0 as builder
+FROM rust:1.70.0 AS builder
 
 RUN USER=root cargo new --bin aws_image_upload 
 WORKDIR /aws_image_upload
