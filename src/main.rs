@@ -1,16 +1,21 @@
 use axum::{
-    extract::Multipart,
-    http::StatusCode,
-    routing::{get, post},
-    Extension, Json, Router,
+    extract::{ConnectInfo, Multipart, Request}, http::StatusCode, middleware::Next, response::IntoResponse, routing::{get, post}, Extension, Json, Router
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, net::SocketAddr};
 use tower_http::cors::CorsLayer;
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
-
 use aws_sdk_s3 as s3;
-
 use s3::Client;
+
+async fn log_request_ip(
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    req: Request<axum::body::Body>,
+    next: Next,
+) -> impl IntoResponse {
+    // log the ip address of the request
+    tracing::info!("Request from IP: {}", addr.ip());
+    next.run(req).await
+}
 
 #[tokio::main]
 async fn main() {
@@ -30,22 +35,22 @@ async fn main() {
     let aws_s3_client = s3::Client::new(&aws_configuration);
 
     let app = Router::new()
-        // route for testing if api is running correctly
         .route("/", get(|| async move { "welcome to Image upload api" }))
-        //route for uploading image or any file
         .route("/upload", post(upload_image))
-        // set your cors config
         .layer(cors_layer)
-        // pass the aws s3 client to route handler
-        .layer(Extension(aws_s3_client));
+        .layer(Extension(aws_s3_client))
+        .layer(axum::middleware::from_fn(log_request_ip));
 
     let addr = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     
     tracing::debug!("starting server on port: {}", addr.local_addr().unwrap().port());
     
-    axum::serve(addr, app)
-        .await
-        .expect("Failed to start server");
+    axum::serve(
+        addr,
+        app.into_make_service_with_connect_info::<SocketAddr>()
+    )
+    .await
+    .expect("Failed to start server");
 }
 
 // handler to upload image or file
